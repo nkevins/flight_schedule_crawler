@@ -5,6 +5,7 @@ import com.google.gson.*;
 import com.silverbullets.schedulecrawler.dataaccess.PersistenceManager;
 import com.silverbullets.schedulecrawler.entity.Aircraft;
 import com.silverbullets.schedulecrawler.entity.RawSchedule;
+import com.silverbullets.schedulecrawler.entity.Schedule;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -120,6 +121,7 @@ public class ScheduleCrawler {
     }
 
     private void saveToDatabase(RawSchedule s) {
+        // Save raw schedule
         TypedQuery<RawSchedule> query =
                 em.createQuery("SELECT s FROM RawSchedule s WHERE s.flightNo = ?1 and s.flightDate = ?2", RawSchedule.class);
         query.setParameter(1, s.getFlightNo());
@@ -147,6 +149,47 @@ public class ScheduleCrawler {
             em.getTransaction().begin();
             em.persist(sch);
             em.getTransaction().commit();
+        }
+
+        // Save summary schedule
+        TypedQuery<Schedule> summaryQuery =
+                em.createQuery("SELECT s FROM Schedule s WHERE s.flightNo = ?1", Schedule.class);
+        summaryQuery.setParameter(1, s.getFlightNo());
+        List<Schedule> summaryResult = summaryQuery.getResultList();
+
+        if (summaryResult.size() == 0) {
+            Schedule sch = new Schedule();
+            sch.setAircraftReg(s.getAircraftReg());
+            sch.setAircraftType(s.getAircraftType());
+            sch.setAirline(s.getAirline());
+            sch.setDeparture(s.getDeparture());
+            sch.setDestination(s.getDestination());
+            sch.setEta(s.getEta());
+            sch.setEtd(s.getEtd());
+            sch.setFlightNo(s.getFlightNo());
+            sch.setCreatedDate(new Date());
+            sch.setLastFlownDate(s.getFlightDate());
+
+            em.getTransaction().begin();
+            em.persist(sch);
+            em.getTransaction().commit();
+        } else {
+            Schedule sch = summaryResult.get(0);
+            if (s.getFlightDate().after(sch.getLastFlownDate())) {
+                sch.setAircraftReg(s.getAircraftReg());
+                sch.setAircraftType(s.getAircraftType());
+                sch.setAirline(s.getAirline());
+                sch.setDeparture(s.getDeparture());
+                sch.setDestination(s.getDestination());
+                sch.setEta(s.getEta());
+                sch.setEtd(s.getEtd());
+                sch.setFlightNo(s.getFlightNo());
+                sch.setLastFlownDate(s.getFlightDate());
+
+                em.getTransaction().begin();
+                em.persist(sch);
+                em.getTransaction().commit();
+            }
         }
     }
 }
