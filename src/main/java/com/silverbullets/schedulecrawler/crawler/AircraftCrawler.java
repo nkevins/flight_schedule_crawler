@@ -12,6 +12,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 
 public class AircraftCrawler {
 
@@ -29,6 +30,16 @@ public class AircraftCrawler {
 
         for (Airline a : results) {
             crawlAircraft(a.getUrl(), a);
+
+            try
+            {
+                Random randomGenerator = new Random();
+                Thread.sleep(randomGenerator.nextInt(2000) + 1000);
+            }
+            catch(InterruptedException ex)
+            {
+                Thread.currentThread().interrupt();
+            }
         }
     }
 
