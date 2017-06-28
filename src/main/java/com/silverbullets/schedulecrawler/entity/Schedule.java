@@ -17,7 +17,14 @@ public class Schedule {
 
     private String airline;
     private String departure;
+
+    @Column(name = "departure_iata")
+    private String departureIata;
+
     private String destination;
+
+    @Column(name = "destination_iata")
+    private String destinationIata;
 
     @Temporal(TemporalType.TIME)
     private Date etd;
@@ -71,12 +78,28 @@ public class Schedule {
         this.departure = departure;
     }
 
+    public String getDepartureIata() {
+        return departureIata;
+    }
+
+    public void setDepartureIata(String departureIata) {
+        this.departureIata = departureIata;
+    }
+
     public String getDestination() {
         return destination;
     }
 
     public void setDestination(String destination) {
         this.destination = destination;
+    }
+
+    public String getDestinationIata() {
+        return destinationIata;
+    }
+
+    public void setDestinationIata(String destinationIata) {
+        this.destinationIata = destinationIata;
     }
 
     public Date getEtd() {

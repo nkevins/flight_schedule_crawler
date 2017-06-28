@@ -83,8 +83,12 @@ public class ScheduleCrawler {
                     String flightNo = data.getAsJsonObject("identification").get("callsign").getAsString();
                     String departure = data.getAsJsonObject("airport").getAsJsonObject("origin").getAsJsonObject("code")
                             .get("icao").getAsString();
+                    String departureIata = data.getAsJsonObject("airport").getAsJsonObject("origin").getAsJsonObject("code")
+                            .get("iata").getAsString();
                     String destination = data.getAsJsonObject("airport").getAsJsonObject("destination")
                             .getAsJsonObject("code").get("icao").getAsString();
+                    String destinationIata = data.getAsJsonObject("airport").getAsJsonObject("destination")
+                            .getAsJsonObject("code").get("iata").getAsString();
                     long departureTimeEpoch = data.getAsJsonObject("time").getAsJsonObject("scheduled")
                             .get("departure").getAsLong();
                     long arrivalTimeEpoch = data.getAsJsonObject("time").getAsJsonObject("scheduled")
@@ -97,7 +101,9 @@ public class ScheduleCrawler {
                     sch.setAircraftType(aircraft.getType());
                     sch.setAirline(aircraft.getAirline());
                     sch.setDeparture(departure);
+                    sch.setDepartureIata(departureIata);
                     sch.setDestination(destination);
+                    sch.setDestinationIata(destinationIata);
                     sch.setEta(arrivalTime);
                     sch.setEtd(departureTime);
                     sch.setFlightNo(flightNo);
@@ -138,7 +144,9 @@ public class ScheduleCrawler {
             sch.setAircraftType(s.getAircraftType());
             sch.setAirline(s.getAirline());
             sch.setDeparture(s.getDeparture());
+            sch.setDepartureIata(s.getDepartureIata());
             sch.setDestination(s.getDestination());
+            sch.setDestinationIata(s.getDestinationIata());
             sch.setEta(s.getEta());
             sch.setEtd(s.getEtd());
             sch.setFlightNo(s.getFlightNo());
@@ -163,7 +171,9 @@ public class ScheduleCrawler {
             sch.setAircraftType(s.getAircraftType());
             sch.setAirline(s.getAirline());
             sch.setDeparture(s.getDeparture());
+            sch.setDepartureIata(s.getDepartureIata());
             sch.setDestination(s.getDestination());
+            sch.setDestinationIata(s.getDestinationIata());
             sch.setEta(s.getEta());
             sch.setEtd(s.getEtd());
             sch.setFlightNo(s.getFlightNo());
@@ -180,7 +190,9 @@ public class ScheduleCrawler {
                 sch.setAircraftType(s.getAircraftType());
                 sch.setAirline(s.getAirline());
                 sch.setDeparture(s.getDeparture());
+                sch.setDepartureIata(s.getDepartureIata());
                 sch.setDestination(s.getDestination());
+                sch.setDestinationIata(s.getDestinationIata());
                 sch.setEta(s.getEta());
                 sch.setEtd(s.getEtd());
                 sch.setFlightNo(s.getFlightNo());
