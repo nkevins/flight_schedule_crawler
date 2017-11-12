@@ -16,6 +16,9 @@ public class RawSchedule {
     @Temporal(TemporalType.DATE)
     private Date flightDate;
 
+    @Column(name = "callsign")
+    private String callsign;
+
     @Column(name = "flight_no")
     private String flightNo;
 
@@ -66,6 +69,14 @@ public class RawSchedule {
 
     public void setFlightDate(Date flightDate) {
         this.flightDate = flightDate;
+    }
+
+    public String getCallsign() {
+        return callsign;
+    }
+
+    public void setCallsign(String callsign) {
+        this.callsign = callsign;
     }
 
     public String getFlightNo() {

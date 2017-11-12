@@ -12,6 +12,9 @@ public class Schedule {
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     private int scheduleId;
 
+    @Column(name = "callsign")
+    private String callsign;
+
     @Column(name = "flight_no")
     private String flightNo;
 
@@ -52,6 +55,14 @@ public class Schedule {
 
     public void setScheduleId(int scheduleId) {
         this.scheduleId = scheduleId;
+    }
+
+    public String getCallsign() {
+        return callsign;
+    }
+
+    public void setCallsign(String callsign) {
+        this.callsign = callsign;
     }
 
     public String getFlightNo() {

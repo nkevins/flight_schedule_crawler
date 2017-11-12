@@ -28,7 +28,7 @@ public class AircraftCrawler {
                 em.createQuery("SELECT a FROM Airline a", Airline.class);
         List<Airline> results = query.getResultList();
 
-        for (Airline a : results) {
+        results.parallelStream().forEach(a -> {
             crawlAircraft(a.getUrl(), a);
 
             try
@@ -40,12 +40,12 @@ public class AircraftCrawler {
             {
                 Thread.currentThread().interrupt();
             }
-        }
+        });
     }
 
     private void crawlAircraft(String url, Airline airline) {
         WebClient webClient = new WebClient(BrowserVersion.CHROME);
-        webClient.getOptions().setJavaScriptEnabled(true);
+        webClient.getOptions().setJavaScriptEnabled(false);
         webClient.getOptions().setThrowExceptionOnScriptError(false);
         webClient.getOptions().setCssEnabled(false);
         webClient.setAjaxController(new NicelyResynchronizingAjaxController());
@@ -76,8 +76,10 @@ public class AircraftCrawler {
     }
 
     private void updateAircraftToDB(String acType, String reg, Airline airline) {
+        EntityManager em2 = PersistenceManager.INSTANCE.getEntityManager();
+
         TypedQuery<Aircraft> query =
-                em.createQuery("SELECT a FROM Aircraft a WHERE a.reg = ?1", Aircraft.class);
+                em2.createQuery("SELECT a FROM Aircraft a WHERE a.reg = ?1", Aircraft.class);
         query.setParameter(1, reg);
         List<Aircraft> results = query.getResultList();
 
@@ -89,16 +91,16 @@ public class AircraftCrawler {
             a.setCreatedDate(new Date());
             a.setLastUpdatedDate(new Date());
 
-            em.getTransaction().begin();
-            em.persist(a);
-            em.getTransaction().commit();
+            em2.getTransaction().begin();
+            em2.persist(a);
+            em2.getTransaction().commit();
         } else {
             Aircraft a = results.get(0);
             a.setLastUpdatedDate(new Date());
 
-            em.getTransaction().begin();
-            em.persist(a);
-            em.getTransaction().commit();
+            em2.getTransaction().begin();
+            em2.persist(a);
+            em2.getTransaction().commit();
         }
     }
 }
