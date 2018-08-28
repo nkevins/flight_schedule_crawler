@@ -11,7 +11,10 @@ public class Aircraft {
     private String reg;
 
     private String type;
-    private String airline;
+
+    @ManyToOne
+    @JoinColumn(name = "airline")
+    private Airline airline;
 
     @Column(name = "created_date")
     @Temporal(TemporalType.TIMESTAMP)
@@ -37,11 +40,11 @@ public class Aircraft {
         this.type = type;
     }
 
-    public String getAirline() {
+    public Airline getAirline() {
         return airline;
     }
 
-    public void setAirline(String airline) {
+    public void setAirline(Airline airline) {
         this.airline = airline;
     }
 

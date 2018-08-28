@@ -6,27 +6,30 @@ import com.silverbullets.schedulecrawler.dataaccess.PersistenceManager;
 import com.silverbullets.schedulecrawler.entity.Aircraft;
 import com.silverbullets.schedulecrawler.entity.RawSchedule;
 import com.silverbullets.schedulecrawler.entity.Schedule;
+import com.silverbullets.schedulecrawler.proxy.ProxyData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.net.URL;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class ScheduleCrawler {
 
     private EntityManager em;
+    private ProxyData proxyData;
+    final Logger logger = LoggerFactory.getLogger(ScheduleCrawler.class);
 
-    public ScheduleCrawler() {
+    public ScheduleCrawler(ProxyData proxyData) {
         em = PersistenceManager.INSTANCE.getEntityManager();
+        this.proxyData = proxyData;
     }
 
     public void start() {
         // Get airlines to be crawled from DB
         TypedQuery<Aircraft> query =
-                em.createQuery("SELECT a FROM Aircraft a", Aircraft.class);
+                em.createQuery("SELECT a FROM Aircraft a WHERE a.airline.active = true", Aircraft.class);
         List<Aircraft> results = query.getResultList();
 
         results.parallelStream().forEach(a -> {
@@ -45,12 +48,19 @@ public class ScheduleCrawler {
     }
 
     private void crawlSchedule(Aircraft aircraft) {
+        logger.info("Crawling schedule for aircraft " + aircraft.getReg());
+
         WebClient webClient = new WebClient(BrowserVersion.CHROME);
         webClient.getOptions().setJavaScriptEnabled(false);
         webClient.getOptions().setThrowExceptionOnScriptError(false);
         webClient.getOptions().setCssEnabled(false);
         webClient.setAjaxController(new NicelyResynchronizingAjaxController());
         webClient.waitForBackgroundJavaScript(5000);
+
+        if (proxyData.isUseProxy()) {
+            ProxyConfig proxyConfig = new ProxyConfig(proxyData.getIp(), proxyData.getPort());
+            webClient.getOptions().setProxyConfig(proxyConfig);
+        }
 
         try {
             String url = "https://api.flightradar24.com/common/v1/flight/list.json?query=" + aircraft.getReg().toLowerCase() +"&fetchBy=reg&page=1&limit=100&token=";
@@ -83,6 +93,8 @@ public class ScheduleCrawler {
             JsonArray dataArray = object.getAsJsonArray("data");
 
             for (JsonElement s : dataArray) {
+                String flightNo = "";
+
                 try {
                     JsonObject data = s.getAsJsonObject();
 
@@ -92,7 +104,6 @@ public class ScheduleCrawler {
 
                     String callsign = data.getAsJsonObject("identification").get("callsign").getAsString();
 
-                    String flightNo = "";
                     if (!data.getAsJsonObject("identification").getAsJsonObject("number").get("default").isJsonNull()) {
                         flightNo = data.getAsJsonObject("identification").getAsJsonObject("number").get("default").getAsString();
                     }
@@ -115,7 +126,7 @@ public class ScheduleCrawler {
                     RawSchedule sch = new RawSchedule();
                     sch.setAircraftReg(aircraft.getReg());
                     sch.setAircraftType(aircraft.getType());
-                    sch.setAirline(aircraft.getAirline());
+                    sch.setAirline(aircraft.getAirline().getIcao());
                     sch.setDeparture(departure);
                     sch.setDepartureIata(departureIata);
                     sch.setDestination(destination);
@@ -126,7 +137,8 @@ public class ScheduleCrawler {
                     sch.setCallsign(callsign);
                     sch.setFlightDate(departureTime);
 
-                    Calendar calendar = Calendar.getInstance();
+                    TimeZone timeZone = TimeZone.getTimeZone("UTC");
+                    Calendar calendar = Calendar.getInstance(timeZone);
                     calendar.setTime(departureTime);
                     sch.setDay(calendar.get(Calendar.DAY_OF_WEEK));
 
@@ -137,12 +149,16 @@ public class ScheduleCrawler {
                 } catch(Exception ex) {
                     System.out.println(ex.getMessage());
                     ex.printStackTrace();
+                    logger.error("Error when parsing API data flight no: " + flightNo, ex);
                 }
             }
         } catch(Exception ex) {
             System.out.println(ex.getMessage());
             ex.printStackTrace();
+            logger.error("Error when calling API", ex);
         }
+
+        logger.info("End of crawling schedule for aircraft " + aircraft.getReg());
     }
 
     private void saveToDatabase(RawSchedule s) {

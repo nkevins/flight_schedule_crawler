@@ -1,8 +1,7 @@
 package com.silverbullets.schedulecrawler.entity;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name = "airline")
@@ -14,6 +13,10 @@ public class Airline {
     private String iata;
     private String name;
     private String url;
+    private boolean active;
+
+    @OneToMany(mappedBy = "airline")
+    private List<Aircraft> aircrafts;
 
     public String getIcao() {
         return icao;
@@ -45,5 +48,17 @@ public class Airline {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public List<Aircraft> getAircrafts() {
+        return aircrafts;
     }
 }
